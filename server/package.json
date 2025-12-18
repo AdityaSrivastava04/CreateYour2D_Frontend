@@ -1,0 +1,19 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "CreateYour2D server",
+  "keywords": [
+    "CreateYour2D"
+  ],
+  "license": "ISC",
+  "author": "Aditya Srivastava",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js"
+  },
+  "devDependencies": {
+    "@google/generative-ai": "^0.24.1",
+    "express": "^5.2.1"
+  }
+}
