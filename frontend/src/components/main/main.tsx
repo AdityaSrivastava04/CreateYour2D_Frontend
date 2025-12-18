@@ -1,115 +1,72 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
+import Sidebar from '../sideBar/sidebar.tsx';
+import ChatArea from './chatArea.tsx';
 
-interface Message {
+export interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  videoUrl?: string;
   timestamp: string;
+  isLoading?: boolean;
 }
 
-const ChatArea: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+export interface ChatHistory {
+  id: string;
+  title: string;
+  timestamp: string;
+  messages: Message[];
+}
 
-  const handleSend = () => {
-    const trimmed = input.trim();
-    if (!trimmed) return;
+const MainContent: React.FC = () => {
+  const [chats, setChats] = useState<ChatHistory[]>([]);
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
 
-    const newMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: trimmed,
-      timestamp: new Date().toISOString(),
-    };
+  const activeChat = chats.find(chat => chat.id === activeChatId);
 
-    // Add user message
-    setMessages((prev) => [...prev, newMessage]);
-
-    // Clear input
-    setInput('');
-
-    // Dummy assistant reply (replace with your API call)
-    setTimeout(() => {
-      const reply: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: `You said: ${trimmed}`,
-        timestamp: new Date().toISOString(),
-      };
-      setMessages((prev) => [...prev, reply]);
-    }, 600);
+  const handleCreateNewChat = (newChat: ChatHistory) => {
+    setChats([newChat, ...chats]);
+    setActiveChatId(newChat.id);
   };
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSend();
+  const handleDeleteChat = (chatId: string) => {
+    const updatedChats = chats.filter(chat => chat.id !== chatId);
+    setChats(updatedChats);
+    if (activeChatId === chatId) {
+      setActiveChatId(updatedChats.length > 0 ? updatedChats[0].id : null);
     }
   };
 
-  // Auto scroll to bottom on new messages
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const handleSelectChat = (chatId: string) => {
+    setActiveChatId(chatId);
+  };
+
+  const handleUpdateMessages = (messages: Message[]) => {
+    setChats(prevChats =>
+      prevChats.map(chat =>
+        chat.id === activeChatId
+          ? { ...chat, messages }
+          : chat
+      )
+    );
+  };
 
   return (
-    <div className="flex flex-col  bg-gray-950">
-      {/* Messages area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4 ">
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex ${
-              msg.role === 'user' ? 'justify-end' : 'justify-start'
-            }`}
-          >
-            <div
-              className={`max-w-xl rounded-2xl px-4 py-3 text-sm shadow 
-              ${
-                msg.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-br-none'
-                  : 'bg-gray-800 text-gray-100 rounded-bl-none'
-              }`}
-            >
-              <div className="whitespace-pre-wrap break-words">
-                {msg.content}
-              </div>
-              <div className="mt-1 text-[10px] text-gray-300 text-right">
-                {new Date(msg.timestamp).toLocaleTimeString()}
-              </div>
-            </div>
-          </div>
-        ))}
-        <div ref={bottomRef} />
-      </div>
-
-      {/* Input area fixed at bottom */}
-      <div className="border-t border-gray-800 bg-gray-900 pt-3  ">
-        <div className="max-w-3xl mx-auto flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type your prompt here..."
-            className="flex-1 rounded-xl bg-gray-800 text-gray-100 px-4 py-3 text-sm 
-              outline-none border border-gray-700 focus:border-blue-500 
-              focus:ring-2 focus:ring-blue-500/30"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!input.trim()}
-            className="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium
-              disabled:bg-gray-600 disabled:cursor-not-allowed
-              hover:bg-blue-700 transition-colors"
-          >
-            Send
-          </button>
-        </div>
-      </div>
+    <div className="flex h-screen w-full bg-gray-950">
+      <Sidebar
+        chats={chats}
+        activeChatId={activeChatId}
+        onCreateNewChat={handleCreateNewChat}
+        onDeleteChat={handleDeleteChat}
+        onSelectChat={handleSelectChat}
+      />
+      <ChatArea
+        activeChatId={activeChatId}
+        messages={activeChat?.messages || []}
+        onUpdateMessages={handleUpdateMessages}
+      />
     </div>
   );
 };
 
-export default ChatArea;
+export default MainContent;
