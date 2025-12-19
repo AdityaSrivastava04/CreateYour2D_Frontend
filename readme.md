@@ -193,7 +193,7 @@ Got questions or ran into a bug? Open an issue here on GitHub and I'll help you 
 
 ## Links
 
-- [Backend repo](https://github.com/AdityaSrivastava04/CreateYour2D/server)
+- [Backend repo](https://github.com/AdityaSrivastava04/CreateYour2D/tree/main/server)
 - Live demo coming soon!
 
 ## What's next?
